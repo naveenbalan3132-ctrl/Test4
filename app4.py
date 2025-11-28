@@ -1,77 +1,70 @@
 import streamlit as st
+import requests
 import pandas as pd
-import yfinance as yf
-import datetime
+import plotly.graph_objects as go
 
-st.set_page_config(page_title="Intraday Screener — India", layout="wide")
+st.set_page_config(page_title="Indian Intraday Stock Scanner", layout="wide")
 
-st.title("📈 Intraday Stock Screener — India (Live Data)")
-st.write("Live NSE intraday data using yfinance (5-minute interval)")
+# ---- NSE LIVE DATA ----
+def get_live_stock(symbol):
+    url = f"https://www.nseindia.com/api/quote-equity?symbol={symbol}"
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+    session = requests.Session()
+    response = session.get(url, headers=headers)
+    data = response.json()
+    return data
 
-# ---- STOCK LIST ----
-def get_nifty50_list():
-    return [
-        "RELIANCE.NS", "TCS.NS", "INFY.NS", "HDFCBANK.NS", "ICICIBANK.NS",
-        "SBIN.NS", "LT.NS", "KOTAKBANK.NS", "AXISBANK.NS", "ITC.NS",
-        "HINDUNILVR.NS", "BHARTIARTL.NS", "HCLTECH.NS", "MARUTI.NS",
-        "ASIANPAINT.NS", "SUNPHARMA.NS", "TITAN.NS", "ULTRACEMCO.NS",
-        "ONGC.NS", "WIPRO.NS"
-    ]
 
-# ---- DATA FETCH ----
-def get_intraday(symbol):
-    try:
-        df = yf.download(symbol, interval="5m", period="1d")
-        if df.empty:
-            return None
-        df.reset_index(inplace=True)
-        df.rename(columns={
-            "Datetime": "timestamp",
-            "Open": "open", "High": "high", "Low": "low",
-            "Close": "close", "Volume": "volume"
-        }, inplace=True)
-        return df
-    except:
-        return None
+# ---- Intraday Logic ----
+def calculate_signals(df):
+    df["SMA5"] = df["lastPrice"].rolling(5).mean()
+    df["SMA20"] = df["lastPrice"].rolling(20).mean()
 
-# ---- SIGNAL ENGINE ----
-def get_signal(df):
-    df["SMA5"] = df["close"].rolling(5).mean()
-    df["SMA20"] = df["close"].rolling(20).mean()
+    df["Signal"] = ""
+    for i in range(len(df)):
+        if df["SMA5"][i] > df["SMA20"][i]:
+            df["Signal"][i] = "BUY"
+        else:
+            df["Signal"][i] = "SELL"
+    return df
 
-    if df["SMA5"].iloc[-1] > df["SMA20"].iloc[-1]:
-        return "BUY 📗"
-    elif df["SMA5"].iloc[-1] < df["SMA20"].iloc[-1]:
-        return "SELL 📕"
-    else:
-        return "NEUTRAL ⚪"
 
 # ---- UI ----
-st.sidebar.header("Settings")
-selected = st.sidebar.multiselect(
-    "Select Stocks", get_nifty50_list(), default=["RELIANCE.NS", "TCS.NS"]
-)
+st.title("📈 Indian Stock Market – Intraday Algo Scanner (LIVE)")
+st.write("Real-time signals using SMA crossover")
 
-if not selected:
-    st.warning("Select at least one stock.")
-    st.stop()
+symbol = st.text_input("Enter NSE Stock Symbol (Example: TCS, INFY, RELIANCE)", "TCS")
 
-results = []
+if st.button("Fetch Live Data"):
+    try:
+        raw = get_live_stock(symbol.upper())
 
-for sym in selected:
-    df = get_intraday(sym)
-    if df is None:
-        results.append((sym, "No Data", "-"))
-        continue
+        prices = raw["priceInfo"]
+        last_price = prices["lastPrice"]
+        open_price = prices["open"]
 
-    signal = get_signal(df)
-    last_price = round(df["close"].iloc[-1], 2)
+        st.metric("Live Price", last_price)
+        st.metric("Open Price", open_price)
 
-    results.append((sym, last_price, signal))
+        hist = raw["preOpenMarket"]["preopen"]
+        df = pd.DataFrame(hist)
+        df.rename(columns={"price": "lastPrice"}, inplace=True)
 
-# ---- DISPLAY ----
-st.subheader("Live Intraday Signals (5-minute updates)")
-res_df = pd.DataFrame(results, columns=["Symbol", "Last Price", "Signal"])
-st.dataframe(res_df, use_container_width=True)
+        df = calculate_signals(df)
 
-st.caption("Data source: Yahoo Finance (NSE intraday 5m interval)")
+        st.subheader("Intraday Buy/Sell Signal")
+        st.dataframe(df[["lastPrice", "SMA5", "SMA20", "Signal"]])
+
+        # ---- Chart ----
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(y=df["lastPrice"], mode="lines", name="Price"))
+        fig.add_trace(go.Scatter(y=df["SMA5"], mode="lines", name="SMA5"))
+        fig.add_trace(go.Scatter(y=df["SMA20"], mode="lines", name="SMA20"))
+        st.plotly_chart(fig, use_container_width=True)
+
+    except Exception as e:
+        st.error("Error fetching data. NSE may have blocked too many requests.")
+        st.write(e)
