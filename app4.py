@@ -163,7 +163,17 @@ def generate_signal(df_underlying_hist, iv_rank_pct, sma_short=9, sma_long=21):
 
 # ------------------------- Streamlit UI -------------------------
 
-st.title('Nifty50 Options — Implied Vol & Buy/Sell Signals')
+# --- Enhanced UI ---
+st.set_page_config(page_title="Nifty50 Options — IV & Signals", layout="wide")
+st.markdown("""
+<style>
+    .main {background-color: #0d1117; color: #e6edf3;}
+    .sidebar .sidebar-content {background-color: #161b22;}
+    h1, h2, h3, h4 {color: #58a6ff;}
+</style>
+""", unsafe_allow_html=True)
+
+st.title('📈 Nifty50 Options — Implied Volatility Dashboard')('Nifty50 Options — Implied Vol & Buy/Sell Signals')
 
 with st.sidebar:
     st.header('Settings')
@@ -255,3 +265,4 @@ st.markdown('---')
 st.caption('This app is a demonstration. IV calculations use basic Black-Scholes and the NSE public option chain. Always validate live trading data and consider commissions, margin and execution risk.')
 
 # End of file
+
