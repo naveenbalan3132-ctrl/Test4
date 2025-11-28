@@ -26,7 +26,7 @@ def brentq(func, a, b, maxiter=200, tol=1e-6):
         else:
             a, fa = c, fc
     return c
-import yfinance as yf
+# removed yfinance dependency
 
 st.set_page_config(page_title="Nifty50 Options — IV & Signals", layout="wide")
 
@@ -211,15 +211,9 @@ with col1:
 # compute IV time series approximation: we'll approximate IV history by computing IV for ATM over past 60 days using historical option prices is hard
 # Instead compute IV of ATM today and get historical underlying to compute implied vol percentile using historical realized vol as proxy
 
-# Fetch underlying historical from yfinance
-with st.spinner('Fetching underlying history for IV rank and signals...'):
-    ticker_map = {'NIFTY': '^NSEI'}
-    ticker = ticker_map.get(symbol.upper(), '^NSEI')
-    hist = yf.download(ticker, period='120d', interval='1d', progress=False)
-
-if hist.empty:
-    st.error('Failed to fetch underlying history via yfinance. Signals unavailable.')
-    st.stop()
+# Trend & IV Rank disabled (no yfinance)
+iv_rank_pct = np.nan
+trend = 'neutral'
 
 # compute simple realized vol (annualized) as proxy for IV history
 hist['returns'] = hist['Close'].pct_change()
@@ -244,7 +238,8 @@ if not np.isnan(atm_iv):
 iv_rank_pct = iv_rank(iv_series)
 
 # compute signal
-signal, reasons, trend = generate_signal(hist, iv_rank_pct if not np.isnan(iv_rank_pct) else 50)
+signal = 'HOLD'
+reasons = ['Trend analysis disabled (no yfinance)'] else 50)
 
 st.markdown('## Signals & IV Summary')
 col_a, col_b, col_c = st.columns(3)
