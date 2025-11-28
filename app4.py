@@ -239,7 +239,7 @@ iv_rank_pct = iv_rank(iv_series)
 
 # compute signal
 signal = 'HOLD'
-reasons = ['Trend analysis disabled (no yfinance)'] else 50)
+reasons = ['Trend analysis disabled (no yfinance)']
 
 st.markdown('## Signals & IV Summary')
 col_a, col_b, col_c = st.columns(3)
