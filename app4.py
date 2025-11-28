@@ -212,27 +212,14 @@ with col1:
 # Instead compute IV of ATM today and get historical underlying to compute implied vol percentile using historical realized vol as proxy
 
 # Trend & IV Rank disabled (no yfinance)
+hist = None
 iv_rank_pct = np.nan
+trend = 'neutral' np.nan
 trend = 'neutral'
 
 # compute simple realized vol (annualized) as proxy for IV history
-hist['returns'] = hist['Close'].pct_change()
-window = 30
-hist['rv_30'] = hist['returns'].rolling(window).std() * np.sqrt(252)
-# Build a synthetic IV series by taking today's ATM option implied vol across strike range median
-atm_strike = df_exp['strike'].iloc[(df_exp['strike'] - underlying_value).abs().argsort()[:1]].values[0]
-atm_row_call = df_exp[(df_exp['strike'] == atm_strike) & (df_exp['type'] == 'CE')]
-atm_row_put = df_exp[(df_exp['strike'] == atm_strike) & (df_exp['type'] == 'PE')]
-# pick available
-atm_iv = np.nan
-if not atm_row_call.empty:
-    atm_iv = atm_row_call['iv_calc'].values[0]
-elif not atm_row_put.empty:
-    atm_iv = atm_row_put['iv_calc'].values[0]
-
-# combine realized vol history with current ATM IV to compute a simple IV rank
-# create a synthetic series: use realized vol history and append current iv
-iv_series = hist['rv_30'].dropna().copy()
+# Removed historical-vol code (no yfinance)
+iv_series = pd.Series([np.nan]) = hist['rv_30'].dropna().copy()
 if not np.isnan(atm_iv):
     iv_series = iv_series.append(pd.Series([atm_iv], index=[hist.index[-1] + pd.Timedelta(days=1)]))
 iv_rank_pct = iv_rank(iv_series)
