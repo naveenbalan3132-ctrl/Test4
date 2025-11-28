@@ -173,8 +173,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title('Nifty50 Options — Implied Volatility Dashboard')('Nifty50 Options — Implied Vol & Buy/Sell Signals')
-
+st.title('Nifty50 Options — Implied Volatility Dashboard')
 with st.sidebar:
     st.header('Settings')
     symbol = st.text_input('Index symbol', value='NIFTY')
