@@ -208,23 +208,13 @@ with col1:
     st.subheader('Option chain (selected expiry)')
     st.dataframe(pivot.fillna('-').head(200))
 
-# compute IV time series approximation: we'll approximate IV history by computing IV for ATM over past 60 days using historical option prices is hard
-# Instead compute IV of ATM today and get historical underlying to compute implied vol percentile using historical realized vol as proxy
-
-# Trend & IV Rank disabled (no yfinance)
-hist = None
+# compute IV time series approximation: disabled block
+atm_iv = np.nan
+atm_strike = underlying_value
 iv_rank_pct = np.nan
-trend = 'neutral' np.nan
 trend = 'neutral'
-
-# compute simple realized vol (annualized) as proxy for IV history
-# Removed historical-vol code (no yfinance)
-iv_series = pd.Series([np.nan]) = hist['rv_30'].dropna().copy()
-if not np.isnan(atm_iv):
-    iv_series = iv_series.append(pd.Series([atm_iv], index=[hist.index[-1] + pd.Timedelta(days=1)]))
-iv_rank_pct = iv_rank(iv_series)
-
 # compute signal
+
 signal = 'HOLD'
 reasons = ['Trend analysis disabled (no yfinance)']
 
