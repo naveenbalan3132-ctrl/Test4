@@ -173,7 +173,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title('📈 Nifty50 Options — Implied Volatility Dashboard')('Nifty50 Options — Implied Vol & Buy/Sell Signals')
+st.title('Nifty50 Options — Implied Volatility Dashboard')('Nifty50 Options — Implied Vol & Buy/Sell Signals')
 
 with st.sidebar:
     st.header('Settings')
@@ -265,4 +265,3 @@ st.markdown('---')
 st.caption('This app is a demonstration. IV calculations use basic Black-Scholes and the NSE public option chain. Always validate live trading data and consider commissions, margin and execution risk.')
 
 # End of file
-
