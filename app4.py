@@ -8,8 +8,24 @@ import requests
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from scipy.stats import norm
-from scipy.optimize import brentq
+# Removed scipy dependency
+def norm_cdf(x):
+    return (1.0 + np.erf(x / np.sqrt(2.0))) / 2.0
+# Simple Brent-like root finder (bisection fallback)
+def brentq(func, a, b, maxiter=200, tol=1e-6):
+    fa, fb = func(a), func(b)
+    if fa * fb > 0:
+        return np.nan
+    for _ in range(maxiter):
+        c = (a + b) / 2
+        fc = func(c)
+        if abs(fc) < tol:
+            return c
+        if fa * fc < 0:
+            b, fb = c, fc
+        else:
+            a, fa = c, fc
+    return c
 import yfinance as yf
 
 st.set_page_config(page_title="Nifty50 Options — IV & Signals", layout="wide")
